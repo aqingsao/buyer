@@ -10,8 +10,8 @@ class User
 	end
         
 	def doWork
-	  actions = genActions()
-	  actions.each{|l| shopping(l[:view], l[:action]|| {}); sleep(Random.rand(30))}
+	    actions = genActions()
+	    actions.each{|l| shopping(l[:view], l[:action]|| {}); sleep(Random.rand(30))}
 	end
 	def genActions
 	  []
@@ -53,6 +53,7 @@ class User
 	end
 
 	def cart(productId)
+	  p "Add product #{productId} to cart"
           get("carts/add", {productId: productId})
 	end
 
@@ -97,4 +98,9 @@ class GuestUser < User
  def genActions
   [{view:[1], action:{carted:[1]}}]
  end 
+end
+class ActiveUser < User
+  def genActions
+    [{view:[1, 2], action:{carted:[1]}}]
+  end
 end
