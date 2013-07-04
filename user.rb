@@ -18,7 +18,7 @@ class User
 	end
 
 	def view(productId)
-          get("products", {productId: productId})
+          get("products/#{productId}")
 	end
 
 	def compare
@@ -31,7 +31,6 @@ class User
 	def addOrder(productIds)
           orderId = postOrder("orders", {"productIds[]"=>1})
           @orders[orderId] = productIds
-  	  p @orders
 	end
   	def cancelOrder
  	end
@@ -45,9 +44,14 @@ class User
           get("orders/#{orderId}/pay")
 	end	
         
+ 	def start(list)
+	  list.each{|l| shopping(l[:view], l[:action]|| {})}
+	end
         def shopping(viewed, options={})
           options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
           login
+	  p viewed
+	  p options
           viewed.each{|p| view(p)}
          
           options[:carted].each{|p| cart(p)}
@@ -57,6 +61,7 @@ class User
           options[:cancelOrder].each{|p| cancelOrder(p)}
           options[:confirmOrder].each{|p| confirmOrder(p)}
           options[:paid].each{|p| pay(p)}
+	  logout
         end
 
 	private 
