@@ -31,35 +31,42 @@ class User
 	def addOrder(productIds)
           orderId = postOrder("orders", {"productIds[]"=>1})
           @orders[orderId] = productIds
+	  p @orders
 	end
-  	def cancelOrder
+  	def cancelOrder(o)
+	  p "cancel order #{o}"
+	  get("orders/#{o}/cancel")
  	end
-	def confirmOrder
+	def confirmOrder(o)
+	  p "confirm order #{o}"
+	  get("orders/#{o}/confirm")
 	end
 	def viewCart
  	  get 'carts'
 	end
 
-	def pay(orderId)
-          get("orders/#{orderId}/pay")
+	def pay(o)
+	  p "pay order #{o}"
+          get("orders/#{o}/pay")
 	end	
         
- 	def start(list)
-	  list.each{|l| shopping(l[:view], l[:action]|| {})}
+ 	def do(actions)
+	  actions.each{|l| shopping(l[:view], l[:action]|| {})}
 	end
         def shopping(viewed, options={})
           options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
           login
-	  p viewed
-	  p options
           viewed.each{|p| view(p)}
          
           options[:carted].each{|p| cart(p)}
           
-          options[:addOrder].each{|p| addOrder(p)}
+	  addOrder(options[:addOrder]) unless options[:addOrder].empty?
 
           options[:cancelOrder].each{|p| cancelOrder(p)}
-          options[:confirmOrder].each{|p| confirmOrder(p)}
+          options[:confirmOrder].each{|p|
+		o = @orders.detect{|k,v|v.include?p}.first;
+		confirmOrder(o)
+	  }
           options[:paid].each{|p| pay(p)}
 	  logout
         end
