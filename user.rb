@@ -22,7 +22,8 @@ class User
 	def compare
 	end
 
-	def addToCart
+	def cart(productId)
+          get(sprintf("carts/add?productId=%d", productId))
 	end
 
 	def order
@@ -31,9 +32,10 @@ class User
 	def pay
 	end	
         
-        def shopping(viewed, compared=[], added=[], bought=[], paid=[])
+        def shopping(viewed, compared=[], carted=[], bought=[], paid=[])
           login
           viewed.each{|p| view(p)}
+          carted.each{|p| puts p.to_s; cart(p)}
         end
 
 	private 
