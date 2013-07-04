@@ -1,10 +1,12 @@
 require 'mechanize'
+require 'json'
 
 class User
 	HOST = "http://localhost:3000/"
 	def initialize(id)
 		@browser = Mechanize.new
 		@id = id
+                @orders=Hash.new([])
 	end
 
 	def login
@@ -26,18 +28,35 @@ class User
           get("carts/add", {productId: productId})
 	end
 
-	def order
-          
+	def addOrder(productIds)
+          orderId = postOrder("orders", {"productIds[]"=>1})
+          @orders[orderId] = productIds
+  	  p @orders
+	end
+  	def cancelOrder
+ 	end
+	def confirmOrder
+	end
+	def viewCart
+ 	  get 'carts'
 	end
 
-	def pay
+	def pay(orderId)
+          get("orders/#{orderId}/pay")
 	end	
         
-        def shopping(viewed, compared=[], carted=[], ordered=[], paid=[])
+        def shopping(viewed, options={})
+          options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
           login
           viewed.each{|p| view(p)}
-          carted.each{|p| cart(p)}
-          ordered.each{|p| order(p)}
+         
+          options[:carted].each{|p| cart(p)}
+          
+          options[:addOrder].each{|p| addOrder(p)}
+
+          options[:cancelOrder].each{|p| cancelOrder(p)}
+          options[:confirmOrder].each{|p| confirmOrder(p)}
+          options[:paid].each{|p| pay(p)}
         end
 
 	private 
@@ -47,6 +66,10 @@ class User
 		@browser.get(url)
 	end
 
-	def post
+	def postOrder(url, data)
+          page = viewCart
+          form = @browser.page.forms.first
+	  form.submit
+          JSON.parse(@browser.page.content)['order']
 	end
 end
