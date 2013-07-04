@@ -15,7 +15,8 @@ class User
 		get("logout", {user: @id})
 	end
 
-	def view
+	def view(productId)
+          get(sprintf("products/%d", productId))
 	end
 
 	def compare
@@ -29,9 +30,14 @@ class User
 
 	def pay
 	end	
+        
+        def shopping(viewed, compared=[], added=[], bought=[], paid=[])
+          login
+          viewed.each{|p| view(p)}
+        end
 
 	private 
-	def get(url, parameters)
+	def get(url, parameters={})
 		url = HOST+url
 		url += ("?" + parameters.map{|k, v| "#{k}=#{v}"}.join("&")) unless parameters.empty?
 		@browser.get(url)
