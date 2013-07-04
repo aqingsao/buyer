@@ -1,14 +1,22 @@
 require 'rubygems'
 require File.join(File.dirname(__FILE__), 'user.rb')
 
-# t1 = Thread.new do
-# GuestUser.new(1234).doWork()
-# end
-t2 = Thread.new do
-	ActiveUser.new(1235).doWork()
-end
+threads =[
+	Thread.new do
+		NonActiveUser.new(1230).doWork()
+	end, 
+	Thread.new do
+		PotentialUser.new(1231).doWork()
+	end, 
+	Thread.new do
+		ActiveUser.new(1232).doWork()
+	end, 
+	Thread.new do
+		VerifyActiveUser.new(1233).doWork()
+	end
+]
 # t1.join
-t2.join
+threads.each {|t| t.join}
 #User.new(1235).do([{view:[1,2,3], action:{carted:[1], addOrder:[1], confirmOrder:[1], paid:[1]}}])
 
 #[InActiveUser.new(1234), InActiveUser.new(1235)].startShopping();
