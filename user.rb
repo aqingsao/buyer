@@ -16,8 +16,8 @@ class User
 	    actions = genActions()
 	    actions.each do |l|
 	    	p "#{@id}: #{l}"
-  			#shopping(l[:view], l[:action] || {})
-			#sleep(Random.rand(ActionSleepMaxTime))
+  			# shopping(l[:view], l[:action] || {})
+			# sleep(Random.rand(ActionSleepMaxTime))
 	    end
 	end
 	def genActions
@@ -90,7 +90,13 @@ class User
 	  p "pay order #{o}"
           get("orders/#{o}/pay")
 	end	
-        
+    
+    def randomProducts(maxCount)
+ 		p = []; 
+ 		(rand(maxCount)+1).times{p.push Products[rand(5)]}; 
+ 		p.uniq
+ 	end
+    
 
 	private 
 	def get(url, parameters={})
@@ -114,22 +120,34 @@ class GuestUser < User
  		viewedProducts = randomProducts(10)
   		{view:viewedProducts, action:{carted:randomCarted(viewedProducts)}}
  	end
- 	def randomProducts(maxCount)
- 		p = []; 
- 		(rand(maxCount)+1).times{p.push Products[rand(5)]}; 
- 		p.uniq
- 	end
  	def randomCarted(viewedProducts)
- 		return (rand(3) == 0 && viewedProducts.length > 0) ? [viewedProducts[0]] : []
+ 		return rand(3) == 0 ? [viewedProducts[0]] : []
  	end
 end
 
 class ActiveUser < User
 	def actionsCount
-		rand(5) + 1
+		rand(10) + 5
 	end
 
-	  def randomAction
-	    {view:[1, 2], action:{carted:[1]}}
-	  end
+	def randomAction
+ 		viewedProducts = randomProducts(10)
+ 		cartedProducts = randomCarted(viewedProducts);
+ 		addOrder = !cartedProducts.empty? && rand(8) > 0;
+ 		addOrderProducts = addOrder ? [cartedProducts[0]] : [];
+ 		confirmOrder = addOrder && rand(8) > 0;
+ 		confirmOrderProducts = confirmOrder ? [cartedProducts[0]] : [];
+ 		payOrder = confirmOrder && rand(8) > 0;
+ 		payProducts = payOrder ? [cartedProducts[0]] : [];
+
+	    {view:viewedProducts, action:{carted:cartedProducts, addOrder:addOrderProducts, confirmOrder:confirmOrderProducts, paid:payProducts}}
+	end
+	def randomCarted(viewedProducts)
+		cartedProducts = []
+ 		rand(viewedProducts.length).times do 
+ 		 	cartedProducts<< viewedProducts[rand(viewedProducts.length)]
+ 		end
+ 		cartedProducts << viewedProducts[0] if rand(1) == 0 && cartedProducts.empty?
+ 		cartedProducts.uniq
+ 	end
 end
