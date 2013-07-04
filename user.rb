@@ -1,6 +1,8 @@
 require 'mechanize'
 require 'json'
 
+GuestActions=5
+ActionSleepMaxTime=5
 class User
 	HOST = "http://localhost:3000/"
 	def initialize(id)
@@ -11,31 +13,40 @@ class User
         
 	def doWork
 	    actions = genActions()
-	    actions.each{|l| shopping(l[:view], l[:action]|| {}); sleep(Random.rand(30))}
+	    actions.each do |l|
+	    	p "#{@id}: #{l}"
+  			shopping(l[:view], l[:action] || {})
+			sleep(Random.rand(ActionSleepMaxTime))
+	    end
 	end
 	def genActions
-	  []
-	end
-        def shopping(viewed, options={})
-          options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
-          login
-          viewed.each{|p| view(p)}
-         
-          options[:carted].each{|p| cart(p)}
-          
-	  addOrder(options[:addOrder]) unless options[:addOrder].empty?
+	  actions = []
+	  actionsCount().times do
+	    actions.push randomAction
+	  end
+	  p "Generate #{actions.length} actions for user #{@id}"
+	  actions
+	end 
+    def shopping(viewed, options={})
+      	options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
+	    login
+	    viewed.each{|p| view(p)}
+	     
+	    options[:carted].each{|p| cart(p)}
+	      
+	  	addOrder(options[:addOrder]) unless options[:addOrder].empty?
 
-          options[:cancelOrder].each{|p| cancelOrder(p)}
-          options[:confirmOrder].each{|p|
-		o = @orders.detect{|k,v|v.include?p}.first;
-		confirmOrder(o)
-	  }
-          options[:paid].each{|p|
-		o = @orders.detect{|k,v|v.include?p}.first;
-		pay(o)
-	  }
-	  logout
-        end
+	    options[:cancelOrder].each{|p| cancelOrder(p)}
+	    options[:confirmOrder].each do |p|
+			o = @orders.detect{|k,v|v.include?p}.first;
+			confirmOrder(o)
+	  	end
+	    options[:paid].each do |p|
+			o = @orders.detect{|k,v|v.include?p}.first;
+			pay(o)
+	  	end
+	  	logout
+    end
 
 	def login
 		get("login", {user: @id})
@@ -53,7 +64,7 @@ class User
 	end
 
 	def cart(productId)
-	  p "Add product #{productId} to cart"
+	  p "user #{@id} add product #{productId} to cart"
           get("carts/add", {productId: productId})
 	end
 
@@ -95,12 +106,19 @@ class User
 	end
 end
 class GuestUser < User
- def genActions
-  [{view:[1], action:{carted:[1]}}]
- end 
+	def actionsCount
+		rand(5) + 1
+	end
+ 	def randomAction
+  		{view:[1], action:{carted:[1]}}
+ 	end
 end
 class ActiveUser < User
-  def genActions
-    [{view:[1, 2], action:{carted:[1]}}]
-  end
+	def actionsCount
+		rand(5) + 1
+	end
+
+	  def randomAction
+	    {view:[1, 2], action:{carted:[1]}}
+	  end
 end
