@@ -1,3 +1,5 @@
+require 'mechanize'
+
 class User
 	HOST = "http://localhost:3000/"
 	def initialize(id)
