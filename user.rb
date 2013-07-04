@@ -2,6 +2,7 @@ require 'mechanize'
 require 'json'
 
 GuestActions=5
+Products=[1,2,3,4,5]
 ActionSleepMaxTime=5
 class User
 	HOST = "http://localhost:3000/"
@@ -15,8 +16,8 @@ class User
 	    actions = genActions()
 	    actions.each do |l|
 	    	p "#{@id}: #{l}"
-  			shopping(l[:view], l[:action] || {})
-			sleep(Random.rand(ActionSleepMaxTime))
+  			#shopping(l[:view], l[:action] || {})
+			#sleep(Random.rand(ActionSleepMaxTime))
 	    end
 	end
 	def genActions
@@ -110,9 +111,19 @@ class GuestUser < User
 		rand(5) + 1
 	end
  	def randomAction
-  		{view:[1], action:{carted:[1]}}
+ 		viewedProducts = randomProducts(10)
+  		{view:viewedProducts, action:{carted:randomCarted(viewedProducts)}}
+ 	end
+ 	def randomProducts(maxCount)
+ 		p = []; 
+ 		(rand(maxCount)+1).times{p.push Products[rand(5)]}; 
+ 		p.uniq
+ 	end
+ 	def randomCarted(viewedProducts)
+ 		return (rand(3) == 0 && viewedProducts.length > 0) ? [viewedProducts[0]] : []
  	end
 end
+
 class ActiveUser < User
 	def actionsCount
 		rand(5) + 1
