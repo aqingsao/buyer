@@ -6,7 +6,11 @@ class User
 	end
 
 	def login
-		get("login", {user, @id})
+		get("login", {user: @id})
+	end
+
+	def logout
+		get("logout", {user: @id})
 	end
 
 	def view
@@ -26,7 +30,9 @@ class User
 
 	private 
 	def get(url, parameters)
-		@browser.get(HOST + url)
+		url = HOST+url
+		url += ("?" + parameters.map{|k, v| "#{k}=#{v}"}.join("&")) unless parameters.empty?
+		@browser.get(url)
 	end
 
 	def post
