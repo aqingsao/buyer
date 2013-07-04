@@ -6,48 +6,21 @@ Products=[1,2,3,4,5]
 ActionSleepMaxTime=5
 class User
 	HOST = "http://localhost:3000/"
-	def initialize(id)
+	def initialize(id, type)
 		@browser = Mechanize.new
 		@id = id
+		@type = type
         @orders=Hash.new([])
 	end
         
 	def doWork
 	    actions = genActions()
 	    actions.each do |l|
-	    	p "#{@id}: #{l}"
-  			# shopping(l[:view], l[:action] || {})
+	    	p "#{@id}: #{@type}: #{l}"
+  			# doAction(l[:view], l[:action] || {})
 			# sleep(Random.rand(ActionSleepMaxTime))
 	    end
 	end
-	def genActions
-	  actions = []
-	  actionsCount().times do
-	    actions.push randomAction
-	  end
-	  p "Generate #{actions.length} actions for user #{@id}"
-	  actions
-	end 
-    def shopping(viewed, options={})
-      	options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
-	    login
-	    viewed.each{|p| view(p)}
-	     
-	    options[:carted].each{|p| cart(p)}
-	      
-	  	addOrder(options[:addOrder]) unless options[:addOrder].empty?
-
-	    options[:cancelOrder].each{|p| cancelOrder(p)}
-	    options[:confirmOrder].each do |p|
-			o = @orders.detect{|k,v|v.include?p}.first;
-			confirmOrder(o)
-	  	end
-	    options[:paid].each do |p|
-			o = @orders.detect{|k,v|v.include?p}.first;
-			pay(o)
-	  	end
-	  	logout
-    end
 
 	def login
 		get("login", {user: @id})
@@ -90,13 +63,6 @@ class User
 	  p "pay order #{o}"
           get("orders/#{o}/pay")
 	end	
-    
-    def randomProducts(maxCount)
- 		p = []; 
- 		(rand(maxCount)+1).times{p.push Products[rand(5)]}; 
- 		p.uniq
- 	end
-    
 
 	private 
 	def get(url, parameters={})
@@ -111,83 +77,172 @@ class User
 	  form.submit
           JSON.parse(@browser.page.content)['order']
 	end
+	def genActions
+	  actions = []
+	  actionsCount().times do
+	    actions.push randomAction
+	  end
+	  p "Generate #{actions.length} actions for user #{@id}, #{@type}"
+	  actions
+	end 
+
+    def doAction(viewed, options={})
+      	options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
+	    login
+	    viewed.each{|p| view(p)}
+	     
+	    options[:carted].each{|p| cart(p)}
+	      
+	  	addOrder(options[:addOrder]) unless options[:addOrder].empty?
+
+	    options[:cancelOrder].each{|p| cancelOrder(p)}
+	    options[:confirmOrder].each do |p|
+			o = @orders.detect{|k,v|v.include?p}.first;
+			confirmOrder(o)
+	  	end
+	    options[:paid].each do |p|
+			o = @orders.detect{|k,v|v.include?p}.first;
+			pay(o)
+	  	end
+	  	logout
+    end
+    
+	def randomAction
+ 		viewedProducts = randomViewedProducts(viewProductCount())   # 
+ 		addToCart = isAddToCart();
+ 		cartedProducts = addToCart ? randomCartedProducts(viewedProducts) : [];
+ 		addOrder = addToCart && isAddOrder();
+ 		addOrderProducts = addOrder ? [cartedProducts[0]] : [];
+ 		confirmOrder = addOrder && isConfirmOrder();
+ 		confirmOrderProducts = confirmOrder ? [cartedProducts[0]] : [];
+ 		payOrder = confirmOrder && isPayOrder();
+ 		payProducts = payOrder ? [cartedProducts[0]] : [];
+
+	    {view:viewedProducts, action:{carted:cartedProducts, addOrder:addOrderProducts, confirmOrder:confirmOrderProducts, paid:payProducts}}
+	end
+
+    def randomViewedProducts(productCount)
+ 		productCount.times.each_with_object([]) do |i, products|
+ 			product = Products[rand(Products.length)]; 
+ 			products << product unless products.include? product; 
+ 		end
+ 	end
+	def randomCartedProducts(viewedProducts)
+ 		(rand(viewedProducts.length) + 1).times.each_with_object([]) do |i, products|
+ 		 	products<< viewedProducts[i]
+ 		end
+ 	end
+
+ 	def rate(r)
+ 		r == 0? false : ( r == 100? true : rand(100) < r) # will return r%
+ 	end
+ 	def count(from, to)
+ 		rand(to - from) + from;
+ 	end
 end
 class NonActiveUser < User # ~100
 	def actionsCount
-		rand(2) + 1  # 1-2 actions
+		count(1, 10)
 	end
- 	def randomAction
- 		viewedProducts = randomProducts(3) # view 1-3 products
-  		{view:viewedProducts, action:{carted:[]}}
- 	end
- 	def randomCarted(viewedProducts)
- 		return rand(3) == 0 ? [viewedProducts[0]] : [] # 1/3 will add product to cart
- 	end
+	def viewProductCount
+		count(1, 3)
+	end
+
+	def isAddToCart
+		rate(19)
+	end
+	def isAddOrder
+		rate(10)
+	end
+	def isConfirmOrder
+		rate(0)
+	end
+	def isPayOrder
+		rate(0)
+	end
+end
+class LittleActiveUser < User # ~100
+	def actionsCount
+		count(20, 100)
+	end
+	def viewProductCount
+		count(1, 5)
+	end
+
+	def isAddToCart
+		rate(20)
+	end
+	def isAddOrder
+		rate(30)
+	end
+	def isConfirmOrder
+		rate(0)
+	end
+	def isPayOrder
+		rate(0)
+	end
 end
 class PotentialUser < User # ~20 
 	def actionsCount
-		rand(5) + 1   # 1-5 actions
+		count(20, 100)
 	end
- 	def randomAction
- 		viewedProducts = randomProducts(10)   # 1-10 products
- 		cartedProducts = rand(3) == 0 ? [viewedProducts[0]] : []; # 1/3 will cart 
- 		addOrder = !cartedProducts.empty? && rand(2) > 0;  # 1/2 will add order
- 		addOrderProducts = addOrder ? [cartedProducts[0]] : []; 
- 		confirmOrder = addOrder && rand(2) > 0; # 1/2 will confirm order
- 		confirmOrderProducts = confirmOrder ? [cartedProducts[0]] : [];
-  		{view:viewedProducts, action:{carted: cartedProducts, addOrder: addOrderProducts, confirmOrder:confirmOrderProducts}}
- 	end
+	def viewProductCount
+		count(1, 5)
+	end
+
+	def isAddToCart
+		rate(20)
+	end
+	def isAddOrder
+		rate(50)
+	end
+	def isConfirmOrder
+		rate(60)
+	end
+	def isPayOrder
+		rate(0)
+	end
 end
 
 class ActiveUser < User 	#~ 10
 	def actionsCount
-		rand(5) + 1
+		count(50, 200)
+	end
+	def viewProductCount
+		count(1, 10)
 	end
 
-	def randomAction
- 		viewedProducts = randomProducts(10)
- 		cartedProducts = randomCarted(viewedProducts);
- 		addOrder = !cartedProducts.empty? && rand(8) > 0;
- 		addOrderProducts = addOrder ? [cartedProducts[0]] : [];
- 		confirmOrder = addOrder && rand(8) > 0;
- 		confirmOrderProducts = confirmOrder ? [cartedProducts[0]] : [];
- 		payOrder = confirmOrder && rand(8) > 0;
- 		payProducts = payOrder ? [cartedProducts[0]] : [];
-
-	    {view:viewedProducts, action:{carted:cartedProducts, addOrder:addOrderProducts, confirmOrder:confirmOrderProducts, paid:payProducts}}
+	def isAddToCart
+		rate(20)
 	end
-	def randomCarted(viewedProducts)
-		cartedProducts = []
- 		rand(viewedProducts.length).times do 
- 		 	cartedProducts<< viewedProducts[rand(viewedProducts.length)]
- 		end
- 		cartedProducts << viewedProducts[0] if rand(1) == 0 && cartedProducts.empty?
- 		cartedProducts.uniq
- 	end
+	def isAddOrder
+		rate(50)
+	end
+	def isConfirmOrder
+		rate(60)
+	end
+	def isPayOrder
+		rate(80)
+	end
 end
-class VerifyActiveUser < User 	# ~5
+class VerifyActiveUser < User 	
 	def actionsCount
-		rand(10) + 5
+		count(50, 200)
+	end
+	def viewProductCount
+		count(1, 10)
 	end
 
-	def randomAction
- 		viewedProducts = randomProducts(10)
- 		cartedProducts = randomCarted(viewedProducts);
- 		addOrder = !cartedProducts.empty? && rand(8) > 0;
- 		addOrderProducts = addOrder ? [cartedProducts[0]] : [];
- 		confirmOrder = addOrder && rand(8) > 0;
- 		confirmOrderProducts = confirmOrder ? [cartedProducts[0]] : [];
- 		payOrder = confirmOrder && rand(8) > 0;
- 		payProducts = payOrder ? [cartedProducts[0]] : [];
-
-	    {view:viewedProducts, action:{carted:cartedProducts, addOrder:addOrderProducts, confirmOrder:confirmOrderProducts, paid:payProducts}}
+	def isAddToCart
+		rate(50)
 	end
-	def randomCarted(viewedProducts)
-		cartedProducts = []
- 		rand(viewedProducts.length).times do 
- 		 	cartedProducts<< viewedProducts[rand(viewedProducts.length)]
- 		end
- 		cartedProducts << viewedProducts[0] if rand(1) == 0 && cartedProducts.empty?
- 		cartedProducts.uniq
- 	end
+	def isAddOrder
+		rate(60)
+	end
+	def isConfirmOrder
+		rate(80)
+	end
+	def isPayOrder
+		rate(80)
+	end
 end
