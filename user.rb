@@ -67,7 +67,10 @@ class User
 		o = @orders.detect{|k,v|v.include?p}.first;
 		confirmOrder(o)
 	  }
-          options[:paid].each{|p| pay(p)}
+          options[:paid].each{|p|
+		o = @orders.detect{|k,v|v.include?p}.first;
+		pay(o)
+	  }
 	  logout
         end
 
