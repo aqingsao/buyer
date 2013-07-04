@@ -5,36 +5,74 @@ require File.join(File.dirname(__FILE__), 'user.rb')
 def userId
 	sprintf("10%03d%03d", rand(1000), @@userIndex += 1).to_i
 end
+def sleepFor(from, to)
+	sleep(rand(to - from) + from)
+end
+
 
 threads =[]
-200.times do 
-	threads << Thread.new do
-		NonActiveUser.new(userId(), 'nonActive').doWork()
-	end 
-end
-50.times do 
-	threads << Thread.new do
-		LittleActiveUser.new(userId(), 'littleActive').doWork()
-	end 
+NonActiveCount = 202;
+LittleActiveCount = 58
+PotentialCount = 31
+ActiveCount = 13
+VeryActiveCount = 11
+
+
+@@nonActive = 0
+@@littleActive = 0
+@@potential = 0
+@@active = 0
+@@veryActive = 0
+
+def finished
+	@@nonActive < NonActiveCount || @@littleActive < LittleActiveCount  || @@potential < PotentialCount  || @@active < ActiveCount || @@veryActive < VeryActiveCount
 end
 
-30.times do 
-	threads << Thread.new do
-		PotentialUser.new(userId(), 'potential').doWork()
-	end 
-end
-10.times do 
-	threads << Thread.new do
-		ActiveUser.new(userId(), 'active').doWork()
+begin 
+	nonActive = @@nonActive < NonActiveCount ? (rand(5) + 1) : 0;
+	nonActive.times do 
+		threads << Thread.new do
+			NonActiveUser.new(userId(), 'nonActive').doWork()
+			sleepFor(5, 15)
+		end 
 	end
-end
-10.times do 
-	threads << Thread.new do
-		VerifyActiveUser.new(userId(), 'veryActive').doWork()
+	@@nonActive += nonActive
+
+	littleActive = @@littleActive < LittleActiveCount ? (rand(5) + 1) : 0;
+	littleActive.times do 
+		threads << Thread.new do
+			LittleActiveUser.new(userId(), 'littleActive').doWork()
+			sleepFor(5, 15)
+		end 
 	end
-end
+	@@littleActive += littleActive
+
+	potential = @@potential < PotentialCount ? (rand(5) + 1) : 0;
+	potential.times do 
+		threads << Thread.new do
+			PotentialUser.new(userId(), 'potential').doWork()
+			sleepFor(5, 15)
+		end 
+	end
+	@@potential += potential
+
+	active = @@active < ActiveCount ? (rand(5) + 1) : 0;
+	active.times do 
+		threads << Thread.new do
+			ActiveUser.new(userId(), 'active').doWork()
+			sleepFor(5, 15)
+		end 
+	end
+	@@active += active
+
+	veryActive = @@veryActive < VeryActiveCount ? (rand(5) + 1) : 0;
+	veryActive.times do 
+		threads << Thread.new do
+			LittleActiveUser.new(userId(), 'veryActive').doWork()
+			sleepFor(5, 15)
+		end 
+	end
+	@@veryActive += veryActive
+end while !finished()
+
 threads.each {|t| t.join}
-#User.new(1235).do([{view:[1,2,3], action:{carted:[1], addOrder:[1], confirmOrder:[1], paid:[1]}}])
-
-#[InActiveUser.new(1234), InActiveUser.new(1235)].startShopping();
-#[InActiveUser.new(1234), InActiveUser.new(1235)].startShopping();

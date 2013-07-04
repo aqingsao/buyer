@@ -1,7 +1,6 @@
 require 'mechanize'
 require 'json'
 
-GuestActions=5
 Products=[1,2,3,4,5]
 ActionSleepMaxTime=5
 class User
@@ -18,7 +17,7 @@ class User
 	    actions.each do |l|
 	    	p "#{@id}: #{@type}: #{l}"
   			# doAction(l[:view], l[:action] || {})
-			# sleep(Random.rand(ActionSleepMaxTime))
+			# sleepFor(5, 10)
 	    end
 	end
 
@@ -38,14 +37,14 @@ class User
 	end
 
 	def cart(productId)
-	  p "user #{@id} add product #{productId} to cart"
-          get("carts/add", {productId: productId})
+	  	p "user #{@id} #{@type} add product #{productId} to cart"
+        get("carts/add", {productId: productId})
 	end
 
 	def addOrder(productIds)
-          orderId = postOrder("orders", {"productIds[]"=>1})
-          @orders[orderId] = productIds
-	  p @orders
+        orderId = postOrder()
+        @orders[orderId] = productIds
+	  	p @orders
 	end
   	def cancelOrder(o)
 	  p "cancel order #{o}"
@@ -66,23 +65,36 @@ class User
 
 	private 
 	def get(url, parameters={})
-		url = HOST+url
-		url += ("?" + parameters.map{|k, v| "#{k}=#{v}"}.join("&")) unless parameters.empty?
-		@browser.get(url)
+		url = sprintf("%s%s?%s", HOST, url, parameters.map{|k, v| "#{k}=#{v}"}.join("&")).chomp('?');
+		retryCount = 0;
+		begin
+			@browser.get(url)
+			p "retry to get #{url} successfully" if retryCount > 0
+		rescue StandardError => e
+			p "Failed to get url #{url}"
+			p "Reason is #{e}"
+			sleep(5)
+			retry if (retryCount+=1) <= 1;
+		end
 	end
 
-	def postOrder(url, data)
-          page = viewCart
-          form = @browser.page.forms.first
-	  form.submit
-          JSON.parse(@browser.page.content)['order']
+	def postOrder
+		begin
+	        page = viewCart
+	        sleepFor(1, 3)
+	        form = @browser.page.forms.first
+		  	form.submit
+	        JSON.parse(@browser.page.content)['order']
+	    rescue
+	    	p "Failed to postOrder: #{$!} at #{$@}"
+	    	0
+    	end
 	end
 	def genActions
 	  actions = []
 	  actionsCount().times do
 	    actions.push randomAction
 	  end
-	  p "Generate #{actions.length} actions for user #{@id}, #{@type}"
 	  actions
 	end 
 
@@ -94,16 +106,21 @@ class User
 	    options[:carted].each{|p| cart(p)}
 	      
 	  	addOrder(options[:addOrder]) unless options[:addOrder].empty?
+	  	sleepFor(1, 3)
 
 	    options[:cancelOrder].each{|p| cancelOrder(p)}
 	    options[:confirmOrder].each do |p|
 			o = @orders.detect{|k,v|v.include?p}.first;
 			confirmOrder(o)
 	  	end
+	  	sleepFor(1, 3)
+
 	    options[:paid].each do |p|
 			o = @orders.detect{|k,v|v.include?p}.first;
 			pay(o)
 	  	end
+
+	  	sleepFor(0, 2)
 	  	logout
     end
     
@@ -138,6 +155,9 @@ class User
  	end
  	def count(from, to)
  		rand(to - from) + from;
+ 	end
+ 	def sleepFor(from, to)
+ 		sleep(rand(to - from) + from)
  	end
 end
 class NonActiveUser < User # ~100
