@@ -15,9 +15,9 @@ class User
 	def doWork
 	    actions = genActions()
 	    actions.each do |l|
-	    	p "#{@id}: #{@type}: #{l}"
-  			# doAction(l[:view], l[:action] || {})
-			# sleepFor(5, 10)
+	    	# p "#{@id}: #{@type}: #{l}"
+  			doAction(l[:view], l[:action] || {})
+			sleepFor(5, 10)
 	    end
 	end
 
@@ -37,7 +37,7 @@ class User
 	end
 
 	def cart(productId)
-	  	p "user #{@id} #{@type} add product #{productId} to cart"
+	  	p "User #{@id} #{@type} add product #{productId} to cart"
         get("carts/add", {productId: productId})
 	end
 
@@ -47,11 +47,11 @@ class User
 	  	p @orders
 	end
   	def cancelOrder(o)
-	  p "cancel order #{o}"
+	  p "User #{@id} #{@type} cancel order #{o}"
 	  get("orders/#{o}/cancel")
  	end
 	def confirmOrder(o)
-	  p "confirm order #{o}"
+	  p "User #{@id} #{@type} confirm order #{o}"
 	  get("orders/#{o}/confirm")
 	end
 	def viewCart
@@ -59,8 +59,8 @@ class User
 	end
 
 	def pay(o)
-	  p "pay order #{o}"
-          get("orders/#{o}/pay")
+	  	p "User #{@id} #{@type} pay order #{o}"
+       	get("orders/#{o}/pay")
 	end	
 
 	private 
@@ -69,12 +69,11 @@ class User
 		retryCount = 0;
 		begin
 			@browser.get(url)
-			p "retry to get #{url} successfully" if retryCount > 0
+			p "retry to get #{url} successfully after #{retryCount} times" if retryCount > 0
 		rescue StandardError => e
-			p "Failed to get url #{url}"
-			p "Reason is #{e}"
-			sleep(5)
-			retry if (retryCount+=1) <= 1;
+			p "Failed to get url #{url}: #{e}"
+			sleep(5 * (retryCount += 1))
+			retry
 		end
 	end
 

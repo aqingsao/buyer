@@ -24,55 +24,64 @@ VeryActiveCount = 11
 @@active = 0
 @@veryActive = 0
 
-def finished
+def notFinished
 	@@nonActive < NonActiveCount || @@littleActive < LittleActiveCount  || @@potential < PotentialCount  || @@active < ActiveCount || @@veryActive < VeryActiveCount
 end
 
+def count(c)
+	rand(c) + 1;
+end
+
 begin 
-	nonActive = @@nonActive < NonActiveCount ? (rand(5) + 1) : 0;
+	nonActive = @@nonActive < NonActiveCount ? count(4) : 0;
 	nonActive.times do 
 		threads << Thread.new do
 			NonActiveUser.new(userId(), 'nonActive').doWork()
-			sleepFor(5, 15)
 		end 
+		sleepFor(5, 15)
 	end
 	@@nonActive += nonActive
+	p "create #{nonActive} nonActive users with total #{@@nonActive}"
 
-	littleActive = @@littleActive < LittleActiveCount ? (rand(5) + 1) : 0;
+	littleActive = @@littleActive < LittleActiveCount ? count(3) : 0;
 	littleActive.times do 
 		threads << Thread.new do
 			LittleActiveUser.new(userId(), 'littleActive').doWork()
-			sleepFor(5, 15)
 		end 
+		sleepFor(5, 15)
 	end
 	@@littleActive += littleActive
+	p "create #{littleActive} littleActive users with total #{@@littleActive}"
 
-	potential = @@potential < PotentialCount ? (rand(5) + 1) : 0;
+	potential = @@potential < PotentialCount ? count(2) : 0;
 	potential.times do 
 		threads << Thread.new do
 			PotentialUser.new(userId(), 'potential').doWork()
-			sleepFor(5, 15)
 		end 
+		sleepFor(5, 15)
 	end
 	@@potential += potential
+	p "create #{potential} potential users with total #{@@potential}"
 
-	active = @@active < ActiveCount ? (rand(5) + 1) : 0;
+	active = @@active < ActiveCount ? count(1) : 0;
 	active.times do 
 		threads << Thread.new do
 			ActiveUser.new(userId(), 'active').doWork()
-			sleepFor(5, 15)
 		end 
+		sleepFor(5, 15)
 	end
 	@@active += active
+	p "create #{active} active users with total #{@@active}"
 
-	veryActive = @@veryActive < VeryActiveCount ? (rand(5) + 1) : 0;
+	veryActive = @@veryActive < VeryActiveCount ? count(1) : 0;
 	veryActive.times do 
 		threads << Thread.new do
 			LittleActiveUser.new(userId(), 'veryActive').doWork()
-			sleepFor(5, 15)
 		end 
+		sleepFor(5, 15)
 	end
 	@@veryActive += veryActive
-end while !finished()
+	p "create #{veryActive} veryActive users with total #{@@veryActive}"
+end while notFinished()
 
 threads.each {|t| t.join}
