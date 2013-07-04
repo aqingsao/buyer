@@ -8,6 +8,34 @@ class User
 		@id = id
                 @orders=Hash.new([])
 	end
+        
+	def doWork
+	  actions = genActions()
+	  actions.each{|l| shopping(l[:view], l[:action]|| {}); sleep(Random.rand(30))}
+	end
+	def genActions
+	  []
+	end
+        def shopping(viewed, options={})
+          options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
+          login
+          viewed.each{|p| view(p)}
+         
+          options[:carted].each{|p| cart(p)}
+          
+	  addOrder(options[:addOrder]) unless options[:addOrder].empty?
+
+          options[:cancelOrder].each{|p| cancelOrder(p)}
+          options[:confirmOrder].each{|p|
+		o = @orders.detect{|k,v|v.include?p}.first;
+		confirmOrder(o)
+	  }
+          options[:paid].each{|p|
+		o = @orders.detect{|k,v|v.include?p}.first;
+		pay(o)
+	  }
+	  logout
+        end
 
 	def login
 		get("login", {user: @id})
@@ -50,29 +78,6 @@ class User
           get("orders/#{o}/pay")
 	end	
         
- 	def do(actions)
-	  actions.each{|l| shopping(l[:view], l[:action]|| {})}
-	end
-        def shopping(viewed, options={})
-          options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
-          login
-          viewed.each{|p| view(p)}
-         
-          options[:carted].each{|p| cart(p)}
-          
-	  addOrder(options[:addOrder]) unless options[:addOrder].empty?
-
-          options[:cancelOrder].each{|p| cancelOrder(p)}
-          options[:confirmOrder].each{|p|
-		o = @orders.detect{|k,v|v.include?p}.first;
-		confirmOrder(o)
-	  }
-          options[:paid].each{|p|
-		o = @orders.detect{|k,v|v.include?p}.first;
-		pay(o)
-	  }
-	  logout
-        end
 
 	private 
 	def get(url, parameters={})
@@ -87,4 +92,9 @@ class User
 	  form.submit
           JSON.parse(@browser.page.content)['order']
 	end
+end
+class GuestUser < User
+ def genActions
+  [{view:[1], action:{carted:[1]}}]
+ end 
 end
