@@ -18,8 +18,9 @@ class Users
 		begin
 			sleepFor(@interval.first, @interval.last)
 			@threads << Thread.new do
-				User.method(@type).call(userId()).doWork()
-				p "create #{@type} user"
+				userId = userId()
+				User.method(@type).call(userId).doWork()
+				p "create user #{userId} with total #{@threads.length}  #{@type} users"
 			end
 		end while @threads.length < @count
 		@threads.each{|t| t.join}
