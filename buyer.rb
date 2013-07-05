@@ -32,14 +32,23 @@ class Users
 
 end
 
-[{type: 'nonActive', count: 200, interval: 1..5}, 
-	{type: 'littleActive', count: 51, interval: 5..15}, 
-	{type: 'potential', count: 29, interval: 10..30}, 
-	{type: 'active', count: 11, interval: 15..50}, 
-	{type: 'veryActive', count: 9, interval: 15..50}, 
+[{type: 'nonActive', count: 200, interval: 4..10}, 
+	{type: 'littleActive', count: 51, interval: 10..20}, 
+	{type: 'potential', count: 29, interval: 20..50}, 
+	{type: 'active', count: 11, interval: 50..100},
+	{type: 'veryActive', count: 9, interval: 50..100}, 
 ].collect do |l|
 	p l
 	Thread.new do
 		Users.new(l[:type], l[:count], l[:interval]).doWork
 	end
 end.each{|t| t.join}
+
+# class Test
+# 	def method
+# 		caller[0][/`([^']*)'/, 1]
+# 	end
+# end
+
+# p Test.new.method
+

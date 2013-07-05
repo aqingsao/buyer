@@ -122,26 +122,29 @@ class User
     def doAction(viewed, options={})
       	options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
 	    login
-	    viewed.each{|p| view(p)}
+	  	sleepFor(1, 5)
+	    viewed.each{|p| sleepFor(2, 5); view(p)}
 	     
-	    options[:carted].each{|p| cart(p)}
+	  	sleepFor(3, 10)
+	    options[:carted].each{|p| sleepFor(2, 5); cart(p)}
 	      
+	  	sleepFor(3, 10)
 	  	addOrder(options[:addOrder]) unless options[:addOrder].empty?
-	  	sleepFor(1, 3)
+	  	sleepFor(1, 5)
 
 	    options[:cancelOrder].each{|p| cancelOrder(p)}
 	    options[:confirmOrder].each do |p|
 			o = @orders.detect{|k,v|v.include?p}.first;
 			confirmOrder(o)
 	  	end
-	  	sleepFor(1, 3)
+	  	sleepFor(1, 5)
 
 	    options[:paid].each do |p|
 			o = @orders.detect{|k,v|v.include?p}.first;
 			pay(o)
 	  	end
 
-	  	sleepFor(0, 2)
+	  	sleepFor(1, 5)
 	  	logout
     end
     
