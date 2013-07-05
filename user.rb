@@ -1,31 +1,40 @@
 require 'mechanize'
 require 'json'
+require File.join(File.dirname(__FILE__), 'util.rb')
 
 Products=[1,2,3,4,5]
 ActionSleepMaxTime=5
 class User
+	include Util
+
 	HOST = "http://localhost:3000/"
-	def initialize(id, type, actionsCount, productsCount, addToCartRate, addOrderRate, confirmOrderRate, payOrderRate)
+	def initialize(id, type, actionsCount, viewedProductsRange, addToCartRate, addOrderRate, confirmOrderRate, payOrderRate)
 		@browser = Mechanize.new
 		@id = id
 		@type = type
         @orders=Hash.new([])
+        @actionsCount = actionsCount
+        @viewedProductsRange = viewedProductsRange
+        @addToCartRate = addToCartRate
+        @addOrderRate = addOrderRate
+        @confirmOrderRate = confirmOrderRate
+        @payOrderRate = payOrderRate
 	end
 
 	def self.nonActiveUser(id)
-		new User(id, "nonActiveUser", count(1, 10), count(1, 3), rate(19), rate(10), rate(0), rate(0));
+		User.new(id, "nonActiveUser", count(1, 10), 1..3, 19, 10, 0, 0);
 	end
 	def self.littleActiveUser(id)
-		new User(id, "littleActiveUser", count(20, 100), count(1, 5), rate(20), rate(30), rate(0), rate(0));
+		User.new(id, "littleActiveUser", count(20, 100), 1..5, 20, 30, 0, 0);
 	end
 	def self.potentialUser(id)
-		new User(id, "potentialUser", count(20, 100), count(1, 5), rate(20), rate(50), rate(60), rate(0));
+		User.new(id, "potentialUser", count(20, 100), 1..5, 20, 50, 60, 0);
 	end
 	def self.activeUser(id)
-		new User(id, "activeUser", count(50, 200), count(1, 10), rate(20), rate(50), rate(60), rate(80));
+		User.new(id, "activeUser", count(50, 200), 1..10, 20,100, 60, 80);
 	end
 	def self.veryActiveUser(id)
-		new User(id, "veryActiveUser", count(50, 100), count(1, 10), rate(50), rate(60), rate(80), rate(80));
+		User.new(id, "veryActiveUser", count(50, 100), 1..10, 50, 60, 80, 80);
 	end
         
 	def doWork
@@ -106,11 +115,9 @@ class User
     	end
 	end
 	def genActions
-	  actions = []
-	  actionsCount().times do
-	    actions.push randomAction
+	  @actionsCount.times.each_with_object([]) do |i, actions|
+	    actions << randomAction
 	  end
-	  actions
 	end 
 
     def doAction(viewed, options={})
@@ -140,17 +147,20 @@ class User
     end
     
 	def randomAction
- 		viewedProducts = randomViewedProducts(viewProductCount())   # 
- 		addToCart = isAddToCart();
+ 		viewedProducts = randomViewedProducts(count(@viewedProductsRange.first, @viewedProductsRange.last))
+ 		addToCart = rate(@addToCartRate);
  		cartedProducts = addToCart ? randomCartedProducts(viewedProducts) : [];
- 		addOrder = addToCart && isAddOrder();
+ 		addOrder = addToCart && rate(@addOrderRate);
  		addOrderProducts = addOrder ? [cartedProducts[0]] : [];
- 		confirmOrder = addOrder && isConfirmOrder();
+ 		confirmOrder = addOrder && rate(@confirmOrderRate);
  		confirmOrderProducts = confirmOrder ? [cartedProducts[0]] : [];
- 		payOrder = confirmOrder && isPayOrder();
+ 		payOrder = confirmOrder && rate(@payOrderRate);
  		payProducts = payOrder ? [cartedProducts[0]] : [];
 
 	    {view:viewedProducts, action:{carted:cartedProducts, addOrder:addOrderProducts, confirmOrder:confirmOrderProducts, paid:payProducts}}
+	end
+	def isAddToCart
+		rate(@addToCartRate);
 	end
 
     def randomViewedProducts(productCount)
@@ -163,15 +173,5 @@ class User
  		(rand(viewedProducts.length) + 1).times.each_with_object([]) do |i, products|
  		 	products<< viewedProducts[i]
  		end
- 	end
-
- 	def rate(r)
- 		r == 0? false : ( r == 100? true : rand(100) < r) # will return r%
- 	end
- 	def count(from, to)
- 		rand(to - from) + from;
- 	end
- 	def sleepFor(from, to)
- 		sleep(rand(to - from) + from)
  	end
 end
