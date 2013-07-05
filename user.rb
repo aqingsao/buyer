@@ -37,11 +37,10 @@ class User
 	end
         
 	def doWork
-	    actions = genActions()
-	    actions.each do |l|
-	    	# p "#{@id}: #{@type}: #{l}"
-  			doAction(l[:view], l[:action] || {})
-			sleepFor(5, 10)
+		  @actionsCount.times() do |i|
+		    action = randomAction
+	    	# p "#{@id}: #{@type}: #{action}"
+  			doAction(action[:view], action[:action] || {})
 	    end
 	end
 
@@ -113,11 +112,6 @@ class User
 	    	0
     	end
 	end
-	def genActions
-	  @actionsCount.times.each_with_object([]) do |i, actions|
-	    actions << randomAction
-	  end
-	end 
 
     def doAction(viewed, options={})
       	options = {carted: [], addOrder: [], cancelOrder:[], confirmOrder:[], paid:[]}.merge(options)
@@ -144,8 +138,9 @@ class User
 			pay(o)
 	  	end
 
-	  	sleepFor(1, 5)
+	  	sleepFor(3, 6)
 	  	logout
+	  	sleepFor(1, 5)
     end
     
 	def randomAction
@@ -161,10 +156,6 @@ class User
 
 	    {view:viewedProducts, action:{carted:cartedProducts, addOrder:addOrderProducts, confirmOrder:confirmOrderProducts, paid:payProducts}}
 	end
-	def isAddToCart
-		rate(@addToCartRate);
-	end
-
     def randomViewedProducts(productCount)
  		productCount.times.each_with_object([]) do |i, products|
  			product = Products[rand(Products.length)]; 
