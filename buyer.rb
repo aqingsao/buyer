@@ -7,16 +7,16 @@ class Users
 	@@userIndex = 0;
 	attr_reader :threads
 
-	def initialize(type, count, userIntervalRange)
+	def initialize(type, count, interval)
 		@type = type
 		@count = count
-		@userIntervalRange = userIntervalRange
+		@interval = interval
 		@threads = []
 	end
 
 	def doWork
 		begin
-			sleepFor(@userIntervalRange.first, @userIntervalRange.last)
+			sleepFor(@interval.first, @interval.last)
 			@threads << Thread.new do
 				User.method(@type).call(userId()).doWork()
 				p "create #{@type} user"
@@ -24,7 +24,7 @@ class Users
 		end while @threads.length < @count
 		@threads.each{|t| t.join}
 	end
-	
+
 	private
 	def userId
 		sprintf("10%03d%03d", rand(1000), @@userIndex += 1).to_i
@@ -32,19 +32,14 @@ class Users
 
 end
 
-[Thread.new do
-	Users.new('nonActive', 200, 1..5).doWork
-end, 
-Thread.new do
-	users = Users.new('littleActive', 51, 5..15).doWork
-end,
-Thread.new do
-	users = Users.new('potential', 29, 10..30).doWork
-end,
-Thread.new do
-	users = Users.new('active', 11, 15..50).doWork
-end,
-Thread.new do
-	users = Users.new('veryActive', 9, 15..50).doWork
-end
-].each{|t| t.join}
+[{type: 'nonActive', count: 200, interval: 1..5}, 
+	{type: 'littleActive', count: 51, interval: 5..15}, 
+	{type: 'potential', count: 29, interval: 10..30}, 
+	{type: 'active', count: 11, interval: 15..50}, 
+	{type: 'veryActive', count: 9, interval: 15..50}, 
+].collect do |l|
+	p l
+	Thread.new do
+		Users.new(l[:type], l[:count], l[:interval]).doWork
+	end
+end.each{|t| t.join}
