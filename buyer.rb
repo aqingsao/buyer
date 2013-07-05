@@ -36,7 +36,7 @@ begin
 	nonActive = @@nonActive < NonActiveCount ? count(4) : 0;
 	nonActive.times do 
 		threads << Thread.new do
-			NonActiveUser.new(userId(), 'nonActive').doWork()
+			User.nonActiveUser(userId()).doWork()
 		end 
 		sleepFor(5, 15)
 	end
@@ -46,7 +46,7 @@ begin
 	littleActive = @@littleActive < LittleActiveCount ? count(3) : 0;
 	littleActive.times do 
 		threads << Thread.new do
-			LittleActiveUser.new(userId(), 'littleActive').doWork()
+			User.littleActiveUser(userId()).doWork()
 		end 
 		sleepFor(5, 15)
 	end
@@ -56,7 +56,7 @@ begin
 	potential = @@potential < PotentialCount ? count(2) : 0;
 	potential.times do 
 		threads << Thread.new do
-			PotentialUser.new(userId(), 'potential').doWork()
+			User.potentialUser(userId()).doWork()
 		end 
 		sleepFor(5, 15)
 	end
@@ -66,7 +66,7 @@ begin
 	active = @@active < ActiveCount ? count(1) : 0;
 	active.times do 
 		threads << Thread.new do
-			ActiveUser.new(userId(), 'active').doWork()
+			User.activeUser(userId()).doWork()
 		end 
 		sleepFor(5, 15)
 	end
@@ -76,7 +76,7 @@ begin
 	veryActive = @@veryActive < VeryActiveCount ? count(1) : 0;
 	veryActive.times do 
 		threads << Thread.new do
-			LittleActiveUser.new(userId(), 'veryActive').doWork()
+			User.veryActiveUser(userId()).doWork()
 		end 
 		sleepFor(5, 15)
 	end

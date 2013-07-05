@@ -5,19 +5,35 @@ Products=[1,2,3,4,5]
 ActionSleepMaxTime=5
 class User
 	HOST = "http://localhost:3000/"
-	def initialize(id, type)
+	def initialize(id, type, actionsCount, productsCount, addToCartRate, addOrderRate, confirmOrderRate, payOrderRate)
 		@browser = Mechanize.new
 		@id = id
 		@type = type
         @orders=Hash.new([])
+	end
+
+	def self.nonActiveUser(id)
+		new User(id, "nonActiveUser", count(1, 10), count(1, 3), rate(19), rate(10), rate(0), rate(0));
+	end
+	def self.littleActiveUser(id)
+		new User(id, "littleActiveUser", count(20, 100), count(1, 5), rate(20), rate(30), rate(0), rate(0));
+	end
+	def self.potentialUser(id)
+		new User(id, "potentialUser", count(20, 100), count(1, 5), rate(20), rate(50), rate(60), rate(0));
+	end
+	def self.activeUser(id)
+		new User(id, "activeUser", count(50, 200), count(1, 10), rate(20), rate(50), rate(60), rate(80));
+	end
+	def self.veryActiveUser(id)
+		new User(id, "veryActiveUser", count(50, 100), count(1, 10), rate(50), rate(60), rate(80), rate(80));
 	end
         
 	def doWork
 	    actions = genActions()
 	    actions.each do |l|
 	    	# p "#{@id}: #{@type}: #{l}"
-  			doAction(l[:view], l[:action] || {})
-			sleepFor(5, 10)
+  			# doAction(l[:view], l[:action] || {})
+			# sleepFor(5, 10)
 	    end
 	end
 
@@ -158,110 +174,4 @@ class User
  	def sleepFor(from, to)
  		sleep(rand(to - from) + from)
  	end
-end
-class NonActiveUser < User # ~100
-	def actionsCount
-		count(1, 10)
-	end
-	def viewProductCount
-		count(1, 3)
-	end
-
-	def isAddToCart
-		rate(19)
-	end
-	def isAddOrder
-		rate(10)
-	end
-	def isConfirmOrder
-		rate(0)
-	end
-	def isPayOrder
-		rate(0)
-	end
-end
-class LittleActiveUser < User # ~100
-	def actionsCount
-		count(20, 100)
-	end
-	def viewProductCount
-		count(1, 5)
-	end
-
-	def isAddToCart
-		rate(20)
-	end
-	def isAddOrder
-		rate(30)
-	end
-	def isConfirmOrder
-		rate(0)
-	end
-	def isPayOrder
-		rate(0)
-	end
-end
-class PotentialUser < User # ~20 
-	def actionsCount
-		count(20, 100)
-	end
-	def viewProductCount
-		count(1, 5)
-	end
-
-	def isAddToCart
-		rate(20)
-	end
-	def isAddOrder
-		rate(50)
-	end
-	def isConfirmOrder
-		rate(60)
-	end
-	def isPayOrder
-		rate(0)
-	end
-end
-
-class ActiveUser < User 	#~ 10
-	def actionsCount
-		count(50, 200)
-	end
-	def viewProductCount
-		count(1, 10)
-	end
-
-	def isAddToCart
-		rate(20)
-	end
-	def isAddOrder
-		rate(50)
-	end
-	def isConfirmOrder
-		rate(60)
-	end
-	def isPayOrder
-		rate(80)
-	end
-end
-class VerifyActiveUser < User 	
-	def actionsCount
-		count(50, 200)
-	end
-	def viewProductCount
-		count(1, 10)
-	end
-
-	def isAddToCart
-		rate(50)
-	end
-	def isAddOrder
-		rate(60)
-	end
-	def isConfirmOrder
-		rate(80)
-	end
-	def isPayOrder
-		rate(80)
-	end
 end
