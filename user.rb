@@ -21,19 +21,19 @@ class User
         @payOrderRate = payOrderRate
 	end
 
-	def self.nonActiveUser(id)
+	def self.nonActive(id)
 		User.new(id, "nonActiveUser", count(1, 10), 1..3, 19, 10, 0, 0);
 	end
-	def self.littleActiveUser(id)
+	def self.littleActive(id)
 		User.new(id, "littleActiveUser", count(20, 100), 1..5, 20, 30, 0, 0);
 	end
-	def self.potentialUser(id)
+	def self.potential(id)
 		User.new(id, "potentialUser", count(20, 100), 1..5, 20, 50, 60, 0);
 	end
-	def self.activeUser(id)
+	def self.active(id)
 		User.new(id, "activeUser", count(50, 200), 1..10, 20,100, 60, 80);
 	end
-	def self.veryActiveUser(id)
+	def self.veryActive(id)
 		User.new(id, "veryActiveUser", count(50, 100), 1..10, 50, 60, 80, 80);
 	end
         
