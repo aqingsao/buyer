@@ -80,6 +80,9 @@ class User
 	def viewCart
  	  get 'carts'
 	end
+	def clearCart
+ 	  get 'carts'
+	end
 
 	def pay(o)
 	  	p "User #{@id} #{@type} pay order #{o}"
@@ -98,6 +101,9 @@ class User
 			sleep(5 * (retryCount += 1))
 			retry
 		end
+	end
+	def delete(url)
+		@browser.delete("#{HOST}#{url}")
 	end
 
 	def postOrder
@@ -139,6 +145,7 @@ class User
 	  	end
 
 	  	sleepFor(3, 6)
+	  	delete("carts/removeAll")
 	  	logout
 	  	sleepFor(1, 5)
     end
@@ -161,6 +168,9 @@ class User
  			product = Products[rand(Products.length)]; 
  			products << product unless products.include? product; 
  		end
+ 	end
+ 	def selectProduct
+
  	end
 	def randomCartedProducts(viewedProducts)
  		(rand(viewedProducts.length) + 1).times.each_with_object([]) do |i, products|
