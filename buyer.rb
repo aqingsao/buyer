@@ -30,26 +30,15 @@ class Users
 	def userId
 		sprintf("10%03d%03d", rand(1000), @@userIndex += 1).to_i
 	end
-
 end
 
-[{type: 'nonActive', count: 200, interval: 4..10}, 
-	{type: 'littleActive', count: 51, interval: 10..20}, 
-	{type: 'potential', count: 29, interval: 20..50}, 
-	{type: 'active', count: 11, interval: 50..100},
-	{type: 'veryActive', count: 9, interval: 50..100}, 
-].collect do |l|
-	p l
-	Thread.new do
-		Users.new(l[:type], l[:count], l[:interval]).doWork
-	end
-end.each{|t| t.join}
-
-# class Test
-# 	def method
-# 		caller[0][/`([^']*)'/, 1]
+# [{type: 'nonActive', count: 200, interval: 4..10}, 
+# 	{type: 'littleActive', count: 51, interval: 10..20}, 
+# 	{type: 'potential', count: 29, interval: 20..50}, 
+# 	{type: 'active', count: 11, interval: 50..100},
+# 	{type: 'veryActive', count: 9, interval: 50..100}, 
+# ].collect do |l|
+# 	Thread.new do
+# 		Users.new(l[:type], l[:count], l[:interval]).doWork
 # 	end
-# end
-
-# p Test.new.method
-
+# end.each{|t| t.join}
