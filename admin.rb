@@ -2,6 +2,7 @@ require 'mechanize'
 require 'json'
 require File.join(File.dirname(__FILE__), 'util.rb')
 require File.join(File.dirname(__FILE__), 'product.rb')
+include Util
 
 class Product
 	attr_reader :id, :name, :price
@@ -13,18 +14,16 @@ class Product
 end
 class Admin
 	include Util
-	@@productIndex = 0;
 	HOST = "http://localhost:3000/"
 
 	def initialize
 		@browser = Mechanize.new
 		@products = []
 	end
-	def createProducts(count)
-		count.times.each_with_object([]) do |i, products|
-			product = Product.new(productId, "Product #{i}", rand(10000).to_f)
-			products << product if createProduct(product)
-		end
+	def createProducts(products)
+		products.each {|p|
+			createProduct(p)
+		}
 	end
 	def updateProducts(products, rate)
 		products.each do |p|
@@ -32,9 +31,6 @@ class Admin
 		end
 	end
 	private
- 	def productId
-		sprintf("34%03d%02d", rand(1000), @@productIndex += 1).to_i
-	end
 	def get(url, parameters={})
 		url = sprintf("%s%s?%s", HOST, url, parameters.map{|k, v| "#{k}=#{v}"}.join("&")).chomp('?');
 		retryCount = 0;
@@ -81,6 +77,22 @@ class Admin
 	end
 end
 
+def productId
+	sprintf("34%03d%02d", rand(1000), @@productIndex += 1).to_i
+end
+@@productIndex = 0;
+products = []
+27.times do |i|
+	products << Product.new(productId, "Product #{@@productIndex}", price(50, 300))
+end
+42.times do |i|
+	products << Product.new(productId, "Product #{@@productIndex}", price(300, 910))
+end
+31.times do |i|
+	products << Product.new(productId, "Product #{@@productIndex}", price(1000, 3000))
+end
+
+products.sort!{|p1, p2| p1.id <=> p2.id}
 admin = Admin.new
-# admin.createProducts(2)
-admin.updateProducts(Products, 0.7)
+admin.createProducts(products)
+# admin.updateProducts(Products, 0.7)

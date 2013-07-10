@@ -10,6 +10,6 @@ module Util
  	end
 
  	def price(from, to)
- 		from == to ? from: (rand(to - from + 1) + from)
+ 		from == to ? from.to_f: (rand(to - from + 1) + from).to_f
  	end
 end
