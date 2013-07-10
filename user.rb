@@ -40,7 +40,25 @@ class User
 	def self.valued(id)
 		User.new(id, "valued", count(5, 10), 1..5, 80, 80, 80, 100);
 	end
-        
+	def self.activeLow(id)
+		User.new(id, "activeLow", count(50, 200), 1..10, 20,100, 60, 80, 0..Products.length/3);
+	end
+	def self.activeMiddle(id)
+		User.new(id, "activeMiddle", count(50, 200), 1..10, 20,100, 60, 80, Products.length/3..Products.length*2/3);
+	end
+	def self.activeHigh(id)
+		User.new(id, "activeHigh", count(50, 200), 1..10, 20,100, 60, 80, Products.length*2/3..Products.lenth-1);
+	end
+    def self.veryActiveLow(id)
+		User.new(id, "veryActiveLow", count(50, 100), 1..10, 50, 60, 80, 80, 0..Products.length/3);
+	end
+    def self.veryActiveMiddle(id)
+		User.new(id, "veryActiveMiddle", count(50, 100), 1..10, 50, 60, 80, 80, Products.length/3..Products.length*2/3);
+	end
+    def self.veryActiveHigh(id)
+		User.new(id, "veryActiveHigh", count(50, 100), 1..10, 50, 60, 80, 80, Products.length*2/3..Products.lenth-1);
+	end
+
 	def doWork
 		  @actionsCount.times() do |i|
 		    action = randomAction
