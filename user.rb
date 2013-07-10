@@ -105,7 +105,7 @@ class User
  	  get 'carts'
 	end
 	def clearCart
- 	  get 'carts'
+ 	  get("carts/removeAll")
 	end
 
 	def pay(o)
@@ -125,9 +125,6 @@ class User
 			sleep(5 * (retryCount += 1))
 			retry
 		end
-	end
-	def delete(url)
-		@browser.delete("#{HOST}#{url}")
 	end
 
 	def postOrder
@@ -169,7 +166,7 @@ class User
 	  	end
 
 	  	sleepFor(3, 6)
-	  	delete("carts/removeAll")
+	  	clearCart
 	  	logout
 	  	sleepFor(1, 5)
     end
