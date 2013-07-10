@@ -8,4 +8,8 @@ module Util
  	def sleepFor(from, to)
  		sleep(rand(to - from) + from)
  	end
+
+ 	def price(from, to)
+ 		from == to ? from: (rand(to - from + 1) + from)
+ 	end
 end

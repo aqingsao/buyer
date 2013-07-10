@@ -3,11 +3,12 @@ require 'json'
 require File.join(File.dirname(__FILE__), 'util.rb')
 require File.join(File.dirname(__FILE__), 'product.rb')
 
+DefaultProductRange = 0..Products.length-1
 class User
 	include Util
 
 	HOST = "http://localhost:3000/"
-	def initialize(id, type, actionsCount, viewedProductsRange, addToCartRate, addOrderRate, confirmOrderRate, payOrderRate)
+	def initialize(id, type, actionsCount, viewedProductsRange, addToCartRate, addOrderRate, confirmOrderRate, payOrderRate,productRange=DefaultProductRange)
 		@browser = Mechanize.new
 		@id = id
 		@type = type
@@ -18,13 +19,14 @@ class User
         @addOrderRate = addOrderRate
         @confirmOrderRate = confirmOrderRate
         @payOrderRate = payOrderRate
+        @productRange = productRange
 	end
 
 	def self.nonActive(id)
 		User.new(id, "nonActiveUser", count(1, 10), 1..3, 19, 10, 0, 0);
 	end
 	def self.littleActive(id)
-		User.new(id, "littleActiveUser", count(20, 100), 1..5, 20, 30, 0, 0);
+		User.new(id, "littleActiveUser", count(20, 100), 1..5, 20, 30, 0, 0,);
 	end
 	def self.potential(id)
 		User.new(id, "potentialUser", count(20, 100), 1..5, 20, 50, 60, 0);
@@ -34,6 +36,9 @@ class User
 	end
 	def self.veryActive(id)
 		User.new(id, "veryActiveUser", count(50, 100), 1..10, 50, 60, 80, 80);
+	end
+	def self.valued(id)
+		User.new(id, "valued", count(5, 10), 1..5, 80, 80, 80, 100);
 	end
         
 	def doWork
@@ -52,21 +57,22 @@ class User
 		get("logout", {user: @id})
 	end
 
-	def view(productId)
-          get("products/#{productId}")
+	def view(product)
+        p "User #{@id} #{@type} is viewing product #{product}"
+		get("products/#{product["id"]}")
 	end
 
 	def compare
 	end
 
-	def cart(productId)
-	  	p "User #{@id} #{@type} add product #{productId} to cart"
-        get("carts/add", {productId: productId})
+	def cart(product)
+	  	p "User #{@id} #{@type} add product #{product} to cart"
+        get("carts/add", {productId: product["id"]})
 	end
 
-	def addOrder(productIds)
+	def addOrder(products)
         orderId = postOrder()
-        @orders[orderId] = productIds
+        @orders[orderId] = products
 	  	p @orders
 	end
   	def cancelOrder(o)
@@ -165,12 +171,9 @@ class User
 	end
     def randomViewedProducts(productCount)
  		productCount.times.each_with_object([]) do |i, products|
- 			product = Products[rand(Products.length)]; 
+ 			product = Products[price(@productRange.first, @productRange.last)]; 
  			products << product unless products.include? product; 
  		end
- 	end
- 	def selectProduct
-
  	end
 	def randomCartedProducts(viewedProducts)
  		(rand(viewedProducts.length) + 1).times.each_with_object([]) do |i, products|
